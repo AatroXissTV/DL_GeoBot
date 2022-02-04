@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -19,10 +19,8 @@ __status__ = "Development"
 import os
 
 # third party imports
-import matplotlib.pyplot as plt
 import cv2
 import numpy as np
-import seaborn as sns
 from keras.preprocessing.image import ImageDataGenerator
 
 # local application imports
@@ -54,57 +52,48 @@ def get_data(dataset_dir):
     return np.array(data)
 
 
-train = get_data("dataset/train")
-test = get_data("dataset/test")
+def data_preprocessing(data):
+    x = []
+    y = []
 
-train_list = []
-for i in train:
-    if(i[1] == 0):
-        train_list.append("France")
-    else:
-        train_list.append("USA")
-sns.set_style("darkgrid")
-sns.countplot(train_list)
-plt.show()
+    for feature, label in data:
+        x.append(feature)
+        y.append(label)
 
-# Data Preprocessing
-
-x_train = []
-y_train = []
-x_test = []
-y_test = []
-
-for feature, label in train:
-    x_train.append(feature)
-    y_train.append(label)
-
-for feature, label in test:
-    x_test.append(feature)
-    y_test.append(label)
+    return x, y
 
 
-# Normalize the data
-x_train = np.array(x_train) / 255
-x_test = np.array(x_test) / 255
+def data_normalization(x, y):
+    x = np.array(x) / 255.0
+    x.reshape(-1, img_size, img_size, 1)
+    y = np.array(y)
 
-x_train.reshape(-1, img_size, img_size, 1)
-y_train = np.array(y_train)
-
-x_test.reshape(-1, img_size, img_size, 1)
-y_test = np.array(y_train)
+    return x, y
 
 
-# Data Augmentation
-datagen = ImageDataGenerator(
-    featurewise_center=False,
-    samplewise_center=False,
-    featurewise_std_normalization=False,
-    samplewise_std_normalization=False,
-    zca_whitening=False,
-    rotation_range=30,
-    zoom_range=0.2,
-    width_shift_range=0.1,
-    height_shift_range=0.1,
-    horizontal_flip=False,
-    vertical_flip=False
-)
+def data_augmentation(x):
+    datagen = ImageDataGenerator(
+        rotation_range=20,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        fill_mode="nearest"
+    )
+
+    return datagen.fit(x)
+
+
+def main():
+    train = get_data("dataset/train")
+    test = get_data("dataset/test")
+    x_train, y_train = data_preprocessing(train)
+    x_test, y_test = data_preprocessing(test)
+    x_train, y_train = data_normalization(x_train, y_train)
+    x_test, y_test = data_normalization(x_test, y_test)
+    datagen = data_augmentation(x_train)
+    print(datagen)
+
+
+main()
