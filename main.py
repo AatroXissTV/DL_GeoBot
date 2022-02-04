@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -22,6 +22,10 @@ import os
 import cv2
 import numpy as np
 from keras.preprocessing.image import ImageDataGenerator
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout
+from keras.optimizers import Adam
+import tensorflow as tf
 
 # local application imports
 
@@ -85,6 +89,37 @@ def data_augmentation(x):
     return datagen.fit(x)
 
 
+def model(x_train, y_train, x_test, y_test):
+    model = Sequential()
+    model.add(Conv2D(
+        32, 3, padding="same", activation="relu", input_shape=(224, 224, 3)))
+    model.add(MaxPool2D())
+
+    model.add(Conv2D(32, 3, padding="same", activation="relu"))
+    model.add(MaxPool2D())
+
+    model.add(Conv2D(64, 3, padding="same", activation="relu"))
+    model.add(MaxPool2D())
+    model.add(Dropout(0.4))
+
+    model.add(Flatten())
+    model.add(Dense(128, activation="relu"))
+    model.add(Dense(2, activation="softmax"))
+
+    model.summary()
+    opt = Adam(lr=0.000001)
+    model.compile(
+        optimizer=opt,
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=['accuracy'])
+
+    history = model.fit(x_train, y_train,
+                        epochs=500,
+                        validation_data=(x_test, y_test))
+
+    return history
+
+
 def main():
     train = get_data("dataset/train")
     test = get_data("dataset/test")
@@ -92,8 +127,9 @@ def main():
     x_test, y_test = data_preprocessing(test)
     x_train, y_train = data_normalization(x_train, y_train)
     x_test, y_test = data_normalization(x_test, y_test)
-    datagen = data_augmentation(x_train)
-    print(datagen)
+    data_augmentation(x_train)
+    history = model(x_train, y_train, x_test, y_test)
+    print(history)
 
 
 main()
