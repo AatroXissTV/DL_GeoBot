@@ -1,6 +1,6 @@
 # main.py
 # created 03/02/2022 at 12:02 by Antoine 'AatroXiss' BEAUDESSON
-# last modified 03/02/2022 at 12:02 by Antoine 'AatroXiss' BEAUDESSON
+# last modified 04/02/2022 at 12:42 by Antoine 'AatroXiss' BEAUDESSON
 
 """ main.py:
     - *
@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -19,117 +19,87 @@ __status__ = "Development"
 import os
 
 # third party imports
-import cv2
-import numpy as np
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Sequential
-from keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout
-from keras.optimizers import Adam
-import tensorflow as tf
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from tensorflow.python.keras import models
+from tensorflow.python.keras import layers
+# from tensorflow.python.keras import regularizers
+# from tensorflow.python.keras import optimizers
 
 # local application imports
 
 # other imports
 
 # constants
-
-labels = [
-    "France",
-    "United States",
-]
-img_size = 224
+TRAIN_PATH_FR = 'dataset/train/France'
+TRAIN_PATH_US = 'dataset/train/United States'
+TEST_PATH = 'dataset/test'
 
 
-def get_data(dataset_dir):
-    data = []
-    for label in labels:
-        path = os.path.join(dataset_dir, label)
-        class_num = labels.index(label)
-        for img_path in os.listdir(path):
-            try:
-                img_arr = cv2.imread(
-                    os.path.join(path, img_path))[..., ::-1]  # BGR to RGB
-                resized_arr = cv2.resize(img_arr, (img_size, img_size))
-                data.append([resized_arr, class_num])
-            except Exception as e:
-                print(f"Error while loading {img_path}: {e}")
-    return np.array(data)
+def loading_dataset(path):
+    """
+    This funtion loads the dataset and returns it as a
+    a list.
+    """
+    filenames = os.listdir(path)
+    return filenames
 
 
-def data_preprocessing(data):
-    x = []
-    y = []
+def construct_dataset(train_files_fr, train_files_us):
+    """
+    This function constructs the dataset.
+    """
+    label = []
+    dataset = []
+    for filename in train_files_fr:
+        dataset.append(filename)
+        label.append('France')
 
-    for feature, label in data:
-        x.append(feature)
-        y.append(label)
+    # Get the same number of us files as fr files
+    number_of_france_files = len(dataset)
+    i = 0
+    while i < number_of_france_files:
+        dataset.append(train_files_us[i])
+        label.append('United States')
+        i += 1
 
-    return x, y
-
-
-def data_normalization(x, y):
-    x = np.array(x) / 255.0
-    x.reshape(-1, img_size, img_size, 1)
-    y = np.array(y)
-
-    return x, y
-
-
-def data_augmentation(x):
-    datagen = ImageDataGenerator(
-        rotation_range=20,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        shear_range=0.2,
-        zoom_range=0.2,
-        horizontal_flip=True,
-        fill_mode="nearest"
-    )
-
-    return datagen.fit(x)
+    df = pd.DataFrame({'filename': dataset, 'label': label})
+    return df
 
 
-def model(x_train, y_train, x_test, y_test):
-    model = Sequential()
-    model.add(Conv2D(
-        32, 3, padding="same", activation="relu", input_shape=(224, 224, 3)))
-    model.add(MaxPool2D())
+def cnn_architecture():
+    model = models.Sequential()
+    model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(256, 256, 3))) # noqa
+    model.add(layers.MaxPooling2D((2, 2)))
 
-    model.add(Conv2D(32, 3, padding="same", activation="relu"))
-    model.add(MaxPool2D())
+    model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
 
-    model.add(Conv2D(64, 3, padding="same", activation="relu"))
-    model.add(MaxPool2D())
-    model.add(Dropout(0.4))
+    model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
 
-    model.add(Flatten())
-    model.add(Dense(128, activation="relu"))
-    model.add(Dense(2, activation="softmax"))
+    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
 
-    model.summary()
-    opt = Adam(lr=0.000001)
-    model.compile(
-        optimizer=opt,
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        metrics=['accuracy'])
+    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
 
-    history = model.fit(x_train, y_train,
-                        epochs=500,
-                        validation_data=(x_test, y_test))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(512, activation='relu'))
+    model.add(layers.Dense(1, activation='sigmoid'))
 
-    return history
+    model.compile(optimizer='Adam', loss='binary_crossentropy', metrics='acc')
 
 
 def main():
-    train = get_data("dataset/train")
-    test = get_data("dataset/test")
-    x_train, y_train = data_preprocessing(train)
-    x_test, y_test = data_preprocessing(test)
-    x_train, y_train = data_normalization(x_train, y_train)
-    x_test, y_test = data_normalization(x_test, y_test)
-    data_augmentation(x_train)
-    history = model(x_train, y_train, x_test, y_test)
-    print(history)
+    train_files_fr = loading_dataset(TRAIN_PATH_FR)
+    train_files_us = loading_dataset(TRAIN_PATH_US)
+    df = construct_dataset(train_files_fr, train_files_us)
+    print(df['label'].value_counts())
+    sns.countplot(x='label', data=df)
+    plt.show()
+    cnn_architecture()
 
 
 main()
