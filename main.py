@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -19,13 +19,10 @@ __status__ = "Development"
 import os
 
 # third party imports
-import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 from tensorflow.python.keras import models
 from tensorflow.python.keras import layers
-# from tensorflow.python.keras import regularizers
-# from tensorflow.python.keras import optimizers
+from sklearn.model_selection import train_test_split
 
 # local application imports
 
@@ -90,16 +87,19 @@ def cnn_architecture():
     model.add(layers.Dense(1, activation='sigmoid'))
 
     model.compile(optimizer='Adam', loss='binary_crossentropy', metrics='acc')
+    model.summary()
 
 
 def main():
     train_files_fr = loading_dataset(TRAIN_PATH_FR)
     train_files_us = loading_dataset(TRAIN_PATH_US)
     df = construct_dataset(train_files_fr, train_files_us)
-    print(df['label'].value_counts())
-    sns.countplot(x='label', data=df)
-    plt.show()
     cnn_architecture()
+
+    # split datas in train and test and validation
+    train, test_val = train_test_split(df, test_size=0.5,
+                                       stratify=df['label'],
+                                       random_state=17)
 
 
 main()
