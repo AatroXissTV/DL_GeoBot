@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -25,7 +25,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import tensorflow as tf
 from tensorflow.python.keras import layers
 from tensorflow.python.keras import models
 
@@ -34,9 +33,9 @@ from tensorflow.python.keras import models
 # other imports
 
 # constants
-TRAIN_PATH_FR = 'drive/MyDrive/France'
-TRAIN_PATH_US = 'drive/MyDrive/United States'
-TRAIN_PATH = 'drive/MyDrive/all'
+TRAIN_PATH_FR = 'dataset/train/France'
+TRAIN_PATH_US = 'dataset/train/United States'
+TRAIN_PATH = 'dataset/train/all'
 
 
 def loading_dataset(path):
@@ -100,35 +99,31 @@ def cnn_architecture():
               activation='relu',
               input_shape=(1536, 662, 3)))
     model.add(layers.MaxPooling2D((2, 2)))
+
     model.add(layers.Conv2D(64, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
+
     model.add(layers.Conv2D(64, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
+
     model.add(layers.Conv2D(128, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
+
     model.add(layers.Conv2D(128, (3, 3), activation='relu'))
-    model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(256, (3, 3), activation='relu'))
-    model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(256, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
 
     model.add(layers.Flatten())
     model.add(layers.Dense(512, activation='relu'))
-    model.add(layers.Dense(10))
+    model.add(layers.Dense(1, activation='sigmoid'))
 
-    model.compile(
-        optimizer='adam',
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        metrics=['accuracy']
-    )
+    model.compile(optimizer='Adam', loss='binary_crossentropy', metrics='acc')
 
-    # model.summary()
+    model.summary()
     return model
 
 
 def image_data_generator(df, path):
-    gen = ImageDataGenerator()
+    gen = ImageDataGenerator(rescale=1./255)
     data = gen.flow_from_dataframe(
         df,
         directory=path,
