@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -20,8 +20,11 @@ import os
 
 # third party imports
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 from tensorflow.python.keras import models
 from tensorflow.python.keras import layers
+from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 
 # local application imports
@@ -31,6 +34,7 @@ from sklearn.model_selection import train_test_split
 # constants
 TRAIN_PATH_FR = 'dataset/train/France'
 TRAIN_PATH_US = 'dataset/train/United States'
+TRAIN_PATH = 'dataset/train/all'
 TEST_PATH = 'dataset/test'
 
 
@@ -87,7 +91,21 @@ def cnn_architecture():
     model.add(layers.Dense(1, activation='sigmoid'))
 
     model.compile(optimizer='Adam', loss='binary_crossentropy', metrics='acc')
-    model.summary()
+
+    return model
+
+
+def image_data_generator(df, path):
+    gen = ImageDataGenerator(rescale=1./255,)
+    data = gen.flow_from_dataframe(
+        df,
+        directory=path,
+        x_col='filename',
+        y_col='label',
+        class_mode='binary',
+        seed=17
+    )
+    return data
 
 
 def main():
@@ -96,10 +114,38 @@ def main():
     df = construct_dataset(train_files_fr, train_files_us)
     cnn_architecture()
 
-    # split datas in train and test and validation
+    # split datas in train, test and validation
     train, test_val = train_test_split(df, test_size=0.5,
                                        stratify=df['label'],
                                        random_state=17)
+    test, val = train_test_split(test_val, test_size=0.5,
+                                 stratify=test_val['label'],
+                                 random_state=17)
+
+    # Generating artificial images using rotations, mirrorings, shifts, etc.
+    train_data = image_data_generator(train, TRAIN_PATH)
+    val_data = image_data_generator(val, TRAIN_PATH)
+
+    # Base model training
+    model = cnn_architecture()
+    history = model.fit(
+        train_data,
+        validation_data=val_data,
+        epochs=10,
+    )
+
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    plt.figure(figsize=(15, 8))
+    plt.plot(loss, label='Train loss')
+    plt.plot(val_loss, '--', label='Val loss')
+    plt.title('Training and validation loss')
+    plt.xticks(np.arange(0, 10))
+    plt.yticks(np.arange(0, 0.7, 0.05))
+    plt.grid()
+    plt.legend()
+    plt.show()
 
 
 main()
