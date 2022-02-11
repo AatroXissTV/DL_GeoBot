@@ -4,5 +4,11 @@
 # visual studio code
 .vscode/
 
+# pycache
+__pycache__/
+
 # dataset
 dataset/
+
+# old main
+old_main.py
