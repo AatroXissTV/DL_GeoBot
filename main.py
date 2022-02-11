@@ -27,6 +27,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from tensorflow.python.keras import layers
 from tensorflow.python.keras import models
+from tensorflow.python.keras import regularizers
+from tensorflow.python.keras.optimizer_v2 import adam
+from tensorflow.python.keras.callbacks import EarlyStopping
 
 # local application imports
 
@@ -97,7 +100,7 @@ def cnn_architecture():
     model = models.Sequential()
     model.add(layers.Conv2D(32, (3, 3),
               activation='relu',
-              input_shape=(1536, 662, 3)))
+              input_shape=(256, 256, 3)))
     model.add(layers.MaxPooling2D((2, 2)))
 
     model.add(layers.Conv2D(64, (3, 3), activation='relu'))
@@ -113,24 +116,38 @@ def cnn_architecture():
     model.add(layers.MaxPooling2D((2, 2)))
 
     model.add(layers.Flatten())
-    model.add(layers.Dense(512, activation='relu'))
+    model.add(layers.Dense(512,
+                           activation='relu',
+                           kernel_regularizer=regularizers.l2(0.001)))
+    model.add(layers.Dropout(0.2))
     model.add(layers.Dense(1, activation='sigmoid'))
 
-    model.compile(optimizer='Adam', loss='binary_crossentropy', metrics='acc')
+    model.compile(optimizer=adam.Adam(learning_rate=5e-4),
+                  loss='binary_crossentropy',
+                  metrics='acc')
 
-    model.summary()
+    # model.summary()
     return model
 
 
 def image_data_generator(df, path):
-    gen = ImageDataGenerator(rescale=1./255)
+    gen = ImageDataGenerator(rescale=1./255,
+                             rotation_range=40,
+                             width_shift_range=0.2,
+                             height_shift_range=0.2,
+                             shear_range=0.2,
+                             zoom_range=0.2,
+                             horizontal_flip=True,
+                             fill_mode='nearest')
     data = gen.flow_from_dataframe(
-        df,
+        dataframe=df,
         directory=path,
         x_col='filename',
         y_col='label',
         class_mode='binary',
-        seed=17
+        target_size=(256, 256),
+        seed=42,
+        batch_size=32,
     )
     return data
 
@@ -159,15 +176,21 @@ def main():
 
     # Generating Artificial Images
     train_data = image_data_generator(train, TRAIN_PATH)
+    print(len(train_data))
     val_data = image_data_generator(val, TRAIN_PATH)
 
     # Training the model
     model = cnn_architecture()
     history = model.fit(train_data,
                         validation_data=val_data,
-                        epochs=10,
-                        batch_size=32
-                        )
+                        epochs=60,
+                        batch_size=32,
+                        steps_per_epoch=len(train_data),
+                        validation_steps=len(val_data),
+                        callbacks=[EarlyStopping(monitor='val_acc',
+                                                 min_delta=0.001,
+                                                 patience=5,
+                                                 verbose=1)])
 
     loss = history.history['loss']
     val_loss = history.history['val_loss']
@@ -178,6 +201,19 @@ def main():
     plt.title('Training and validation loss')
     plt.xticks(np.arange(0, 10))
     plt.yticks(np.arange(0, 0.7, 0.05))
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+    loss = history.history['acc']
+    val_loss = history.history['val_acc']
+
+    plt.figure(figsize=(15, 8))
+    plt.plot(loss, label='Train acc')
+    plt.plot(val_loss, '--', label='Val acc')
+    plt.title('Training and validation accuracy')
+    plt.yticks(np.arange(0.5, 1, 0.05))
+    plt.xticks(np.arange(0, 61))
     plt.grid()
     plt.legend()
     plt.show()
