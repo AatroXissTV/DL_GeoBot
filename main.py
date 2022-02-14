@@ -1,6 +1,6 @@
 # main.py
 # created 03/02/2022 at 12:02 by Antoine 'AatroXiss' BEAUDESSON
-# last modified 11/02/2022 at 17:01 by Antoine 'AatroXiss' BEAUDESSON
+# last modified 14/02/2022 at 11:07 by Antoine 'AatroXiss' BEAUDESSON
 
 """ main.py:
     - *
@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.12"
+__version__ = "0.0.13"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -18,52 +18,51 @@ __status__ = "Development"
 # standard library imports
 
 # third party imports
-from sklearn.model_selection import train_test_split
+import tensorflow as tf
 
 # local application imports
-from modules.datasets import (
-    loading_dataset,
-    construct_dataset,
-    image_data_gen
-)
-from modules.model import (
-    cnn_model,
-    evaluate_model_val_acc,
-    evaluate_model_val_loss,
+from modules.dataset_management import (
+    explore_data,
+    load_data,
+    visualize_data
 )
 
 # other imports
 
 # constants
-PATH_FR = 'dataset/train/France'
-PATH_US = 'dataset/train/United States'
-PATH_ALL = 'dataset/train/all'
+PATH_TRAIN_DATASET = 'dataset/train/'
 
-EPOCHS = 10
+BATCH_SIZE = 32
+IMG_HEIGHT = 662
+IMG_WIDTH = 1536
 
 
 def main():
-    filenames_fr = loading_dataset(PATH_FR)
-    filenames_us = loading_dataset(PATH_US)
-    df = construct_dataset(filenames_fr, filenames_us)
+    """
+    """
+    train_dir = explore_data(PATH_TRAIN_DATASET)
 
-    # check_dataset(df)
-    train, val = train_test_split(df, test_size=0.5,
-                                  random_state=17, stratify=df['label'])
+    train_ds = load_data(train_dir, 'training',
+                         BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
+    test_ds = load_data(train_dir, 'validation',
+                        BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
 
-    # image augmentation
-    train_datagen = image_data_gen(train, PATH_ALL)
-    val_datagen = image_data_gen(val, PATH_ALL)
+    # get class_names
+    class_names = train_ds.class_names
 
-    model = cnn_model()
-    history = model.fit(train_datagen,
-                        validation_data=val_datagen,
-                        epochs=EPOCHS,
-                        batch_size=32,
-                        steps_per_epoch=len(train_datagen),
-                        validation_steps=len(val_datagen))
-    evaluate_model_val_loss(history, EPOCHS)
-    evaluate_model_val_acc(history, EPOCHS)
+    # get image_batch and label_batch
+    for image_batch, label_batch in train_ds:
+        print(image_batch.shape, label_batch.shape)
+        break
+
+    # visualize the data
+    visualize_data(train_ds, class_names)
+
+    # Performance
+    AUTOTUNE = tf.data.AUTOTUNE
+    train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+    test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 
-main()
+if __name__ == "__main__":
+    main()
