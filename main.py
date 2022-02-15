@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.14"
+__version__ = "0.0.15"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -40,7 +40,7 @@ PATH_TRAIN_DATASET = 'dataset/train/'
 BATCH_SIZE = 32
 IMG_HEIGHT = 331
 IMG_WIDTH = 768
-EPOCHS = 10
+EPOCHS = 15
 
 
 def main():
@@ -84,6 +84,7 @@ def main():
     # visualize the results
     visualize_val_acc(EPOCHS, history)
     visualize_val_loss(EPOCHS, history)
+    input("Press Enter to continue...")
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.13"
+__version__ = "0.0.15"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -67,6 +67,22 @@ def load_data(data_dir, subset, batch_size, img_height, img_width):
     return ds
 
 
+def data_augmentation(img_height, img_width):
+    """
+    """
+
+    data_augmentation = tf.keras.Sequential(
+        [
+            tf.keras.layers.RandomFlip("horizontal",
+                                       input_shape=(img_height, img_width, 3)),
+            tf.keras.layers.RandomRotation(0.1),
+            tf.keras.layers.RandomZoom(0.1),
+        ]
+    )
+
+    return data_augmentation
+
+
 def visualize_data(ds, class_names):
     """
     This function visualizes the 9 first images in the dataset.
@@ -82,3 +98,18 @@ def visualize_data(ds, class_names):
             plt.title(class_names[labels[i]])
             plt.axis("off")
     plt.show()
+    input("Press Enter to continue...")
+
+
+def visualize_data_augmentation(ds, img_height, img_width):
+    """
+    """
+    plt.figure(figsize=(10, 10))
+    for images, _ in ds.take(1):
+        for i in range(9):
+            augmented_images = data_augmentation(img_height, img_width)(images)
+            plt.subplot(3, 3, i + 1)
+            plt.imshow(augmented_images[0].numpy().astype("uint8"))
+            plt.axis("off")
+    plt.show()
+    input("Press Enter to continue...")
