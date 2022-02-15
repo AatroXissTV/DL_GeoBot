@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.15"
+__version__ = "0.0.16"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -20,6 +20,7 @@ __status__ = "Development"
 # third party imports
 from keras import layers
 import numpy as np
+import tensorflow as tf
 
 # local application imports
 from modules.dataset_management import (
@@ -38,9 +39,9 @@ from modules.model import (
 PATH_TRAIN_DATASET = 'dataset/train/'
 
 BATCH_SIZE = 32
-IMG_HEIGHT = 331
-IMG_WIDTH = 768
-EPOCHS = 15
+IMG_HEIGHT = 300
+IMG_WIDTH = 600
+EPOCHS = 1
 
 
 def main():
@@ -63,11 +64,6 @@ def main():
     # visualize the data
     # visualize_data(train_ds, class_names)
 
-    # Performance
-    # AUTOTUNE = tf.data.AUTOTUNE
-    # train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
-    # test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
-
     # standardize the data
     normalization_layer = layers.Rescaling(1. / 255)
     normalized_ds = train_ds.map(lambda x, y: (normalization_layer(x), y))
@@ -85,6 +81,20 @@ def main():
     visualize_val_acc(EPOCHS, history)
     visualize_val_loss(EPOCHS, history)
     input("Press Enter to continue...")
+
+    # save model
+    # model.save('model.h5')
+
+    # Predict
+    predict_img = test_ds.take(1)
+
+    predictions = model.predict(predict_img)
+    score = tf.nn.softmax(predictions[0])
+
+    print(
+        "This image most likely belongs to {} with a {:.2f}% confidence."
+        .format(class_names[np.argmax(score)], 100 * np.max(score))
+    )
 
 
 if __name__ == "__main__":
