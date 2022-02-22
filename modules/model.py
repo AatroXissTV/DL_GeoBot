@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.15"
+__version__ = "0.0.17"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -18,8 +18,11 @@ __status__ = "Development"
 # standard library imports
 
 # third party imports
+import cv2
 import matplotlib.pyplot as plt
+import numpy as np
 from keras.models import Sequential
+from keras.models import load_model
 from keras import layers
 import tensorflow as tf
 
@@ -38,6 +41,7 @@ def cnn_model(class_names, img_height, img_width):
     """
 
     num_classes = len(class_names)
+
     model = Sequential(
         [
             data_augmentation(img_height, img_width),
@@ -95,3 +99,53 @@ def visualize_val_loss(epochs, history):
     plt.title('Training and Validation Loss')
     plt.show()
     input("Press Enter to continue...")
+
+
+def make_predictions(predict_img, model, class_names):
+    """
+    """
+
+    predictions = model.predict(predict_img)
+    score = tf.nn.softmax(predictions[0])
+
+    print(
+        "This image most likely belongs to {} with a {:.2f}% confidence."
+        .format(class_names[np.argmax(score)], 100 * np.max(score))
+    )
+    input("Press Enter to continue...")
+
+
+def use_pretrained_model(class_names, img_height, img_width, img_path):
+    """
+    """
+
+    model = load_model('./model.h5')
+    model.compile(optimizer='adam',
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),  # noqa
+                  metrics=['accuracy'])
+
+    img = cv2.imread(img_path)
+    img = cv2.resize(img, (img_height, img_width))
+    img = np.reshape(img, (1, img_height, img_width, 3))
+
+    make_predictions(img, model, class_names)
+
+
+def train_model(class_names, img_height, img_width,
+                train_ds, val_ds, epochs, test_image_path):  # noqa
+    model = cnn_model(class_names, img_height, img_width)
+    history = model.fit(train_ds,
+                        validation_data=val_ds,
+                        epochs=epochs)
+
+    # Visualize the results
+    visualize_val_acc(epochs, history)
+    visualize_val_loss(epochs, history)
+
+    img = cv2.imread(test_image_path)
+    img = cv2.resize(img, (img_height, img_width))
+    img = np.reshape(img, (1, img_height, img_width, 3))
+
+    make_predictions(img, model, class_names)
+
+    # model.save('model.h5')

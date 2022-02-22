@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.16"
+__version__ = "0.0.17"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -18,9 +18,6 @@ __status__ = "Development"
 # standard library imports
 
 # third party imports
-from keras import layers
-import numpy as np
-import tensorflow as tf
 
 # local application imports
 from modules.dataset_management import (
@@ -28,73 +25,54 @@ from modules.dataset_management import (
     load_data,
 )
 from modules.model import (
-    cnn_model,
-    visualize_val_acc,
-    visualize_val_loss
+
+    use_pretrained_model,
+    train_model,
 )
 
 # other imports
 
 # constants
 PATH_TRAIN_DATASET = 'dataset/train/'
+IMG_TEST_PATH_US = 'dataset/test/us/canvas_1629257624.jpg'
+IMG_TEST_PATH_FR = 'dataset/test/fr/canvas_1629257785.jpg'
+
+VAL_PATH = IMG_TEST_PATH_FR
 
 BATCH_SIZE = 32
-IMG_HEIGHT = 300
-IMG_WIDTH = 600
+IMG_HEIGHT = 150
+IMG_WIDTH = 300
 EPOCHS = 1
 
 
 def main():
     """
     """
-    train_dir = explore_data(PATH_TRAIN_DATASET)
 
+    train_dir = explore_data(PATH_TRAIN_DATASET)
     train_ds = load_data(train_dir, 'training',
                          BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
-    test_ds = load_data(train_dir, 'validation',
-                        BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
-
-    # get image_batch and label_batch
-    for image_batch, label_batch in train_ds:
-        print(image_batch.shape, label_batch.shape)
-        break
+    val_ds = load_data(train_dir, 'validation',
+                       BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
 
     class_names = train_ds.class_names
 
-    # visualize the data
-    # visualize_data(train_ds, class_names)
-
-    # standardize the data
-    normalization_layer = layers.Rescaling(1. / 255)
-    normalized_ds = train_ds.map(lambda x, y: (normalization_layer(x), y))
-    image_batch, label_batch = next(iter(normalized_ds))
-    first_image = image_batch[0]
-    print(np.min(first_image), np.max(first_image))
-
-    # Build model
-    model = cnn_model(class_names, IMG_HEIGHT, IMG_WIDTH)
-    history = model.fit(train_ds,
-                        validation_data=test_ds,
-                        epochs=EPOCHS)
-
-    # visualize the results
-    visualize_val_acc(EPOCHS, history)
-    visualize_val_loss(EPOCHS, history)
-    input("Press Enter to continue...")
-
-    # save model
-    # model.save('model.h5')
-
-    # Predict
-    predict_img = test_ds.take(1)
-
-    predictions = model.predict(predict_img)
-    score = tf.nn.softmax(predictions[0])
-
-    print(
-        "This image most likely belongs to {} with a {:.2f}% confidence."
-        .format(class_names[np.argmax(score)], 100 * np.max(score))
-    )
+    # Ask for the user which model he wants to use
+    user_input = input('Use pretrained model? (0/1)')
+    if user_input == '0':
+        use_pretrained_model(class_names, IMG_HEIGHT, IMG_WIDTH, VAL_PATH)
+    elif user_input == '1':
+        train_model(
+            class_names,
+            IMG_HEIGHT,
+            IMG_WIDTH,
+            train_ds,
+            val_ds,
+            EPOCHS,
+            VAL_PATH
+        )
+    else:
+        print("Please enter a valid input (0/1)")
 
 
 if __name__ == "__main__":
