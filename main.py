@@ -1,6 +1,6 @@
 # main.py
 # created 03/02/2022 at 12:02 by Antoine 'AatroXiss' BEAUDESSON
-# last modified 14/02/2022 at 11:07 by Antoine 'AatroXiss' BEAUDESSON
+# last modified 23/02/2022 at 10:07 by Antoine 'AatroXiss' BEAUDESSON
 
 """ main.py:
     - *
@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.17"
+__version__ = "0.0.18"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -25,7 +25,7 @@ from modules.dataset_management import (
     load_data,
 )
 from modules.model import (
-
+    evaluate_model,
     use_pretrained_model,
     train_model,
 )
@@ -34,10 +34,11 @@ from modules.model import (
 
 # constants
 PATH_TRAIN_DATASET = 'dataset/train/'
-IMG_TEST_PATH_US = 'dataset/test/us/canvas_1629257624.jpg'
+PATH_TEST_DATASET = 'dataset/test/'
+IMG_TEST_PATH_US = 'dataset/test/us/canvas_1629260810.jpg'
 IMG_TEST_PATH_FR = 'dataset/test/fr/canvas_1629257785.jpg'
 
-VAL_PATH = IMG_TEST_PATH_FR
+VAL_PATH = IMG_TEST_PATH_US
 
 BATCH_SIZE = 32
 IMG_HEIGHT = 150
@@ -54,13 +55,17 @@ def main():
                          BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
     val_ds = load_data(train_dir, 'validation',
                        BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
+    test_dir = explore_data(PATH_TEST_DATASET)
+    test_ds = load_data(test_dir, 'training',
+                        BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
 
     class_names = train_ds.class_names
 
     # Ask for the user which model he wants to use
     user_input = input('Use pretrained model? (0/1)')
     if user_input == '0':
-        use_pretrained_model(class_names, IMG_HEIGHT, IMG_WIDTH, VAL_PATH)
+        model = use_pretrained_model(class_names, IMG_HEIGHT, IMG_WIDTH, VAL_PATH)  # noqa
+        evaluate_model(model, test_ds)
     elif user_input == '1':
         train_model(
             class_names,

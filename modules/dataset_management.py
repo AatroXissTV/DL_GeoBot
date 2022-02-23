@@ -1,6 +1,6 @@
 # dataset_management.py
 # created 14/02/2022 at 11:07 by Antoine 'AatroXiss' BEAUDESSON
-# last modified 14/02/2022 at 11:07 by Antoine 'AatroXiss' BEAUDESSON
+# last modified 23/02/2022 at 11:07 by Antoine 'AatroXiss' BEAUDESSON
 
 """ main.py:
     - *
@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.17"
+__version__ = "0.0.18"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"

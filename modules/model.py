@@ -1,6 +1,6 @@
 # model.py
 # created 14/02/2022 at 16:52 by Antoine 'AatroXiss' BEAUDESSON
-# last modified 14/02/2022 at 16:52 by Antoine 'AatroXiss' BEAUDESSON
+# last modified 23/02/2022 at 16:52 by Antoine 'AatroXiss' BEAUDESSON
 
 """ model.py:
     - *
@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.17"
+__version__ = "0.0.18"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -18,7 +18,6 @@ __status__ = "Development"
 # standard library imports
 
 # third party imports
-import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from keras.models import Sequential
@@ -124,11 +123,15 @@ def use_pretrained_model(class_names, img_height, img_width, img_path):
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),  # noqa
                   metrics=['accuracy'])
 
-    img = cv2.imread(img_path)
-    img = cv2.resize(img, (img_height, img_width))
-    img = np.reshape(img, (1, img_height, img_width, 3))
+    img = tf.keras.utils.load_img(
+        img_path, target_size=(img_height, img_width)
+    )
+    img_array = tf.keras.utils.img_to_array(img)
+    img_array = tf.expand_dims(img_array, 0)  # Create a batch
 
-    make_predictions(img, model, class_names)
+    make_predictions(img_array, model, class_names)
+
+    return model
 
 
 def train_model(class_names, img_height, img_width,
@@ -142,10 +145,22 @@ def train_model(class_names, img_height, img_width,
     visualize_val_acc(epochs, history)
     visualize_val_loss(epochs, history)
 
-    img = cv2.imread(test_image_path)
-    img = cv2.resize(img, (img_height, img_width))
-    img = np.reshape(img, (1, img_height, img_width, 3))
+    img = tf.keras.utils.load_img(
+        test_image_path, target_size=(img_height, img_width)
+    )
+    img_array = tf.keras.utils.img_to_array(img)
+    img_array = tf.expand_dims(img_array, 0)  # Create a batch
 
     make_predictions(img, model, class_names)
 
     # model.save('model.h5')
+
+
+def evaluate_model(model, test_ds):
+    score = model.evaluate(test_ds, verbose=2)
+
+    print(
+        "This CNN model has an accuracy of {:.2f}% on the test set."
+        .format(100 * score[1])
+    )
+    input("Press Enter to continue...")
