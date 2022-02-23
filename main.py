@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.18"
+__version__ = "0.0.19"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -35,7 +35,8 @@ from modules.model import (
 # constants
 PATH_TRAIN_DATASET = 'dataset/train/'
 PATH_TEST_DATASET = 'dataset/test/'
-IMG_TEST_PATH_US = 'dataset/test/us/canvas_1629260810.jpg'
+
+IMG_TEST_PATH_US = 'dataset/test/us/canvas_1629266864.jpg'
 IMG_TEST_PATH_FR = 'dataset/test/fr/canvas_1629257785.jpg'
 
 VAL_PATH = IMG_TEST_PATH_US
