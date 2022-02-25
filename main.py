@@ -1,6 +1,6 @@
 # main.py
 # created 03/02/2022 at 12:02 by Antoine 'AatroXiss' BEAUDESSON
-# last modified 23/02/2022 at 10:07 by Antoine 'AatroXiss' BEAUDESSON
+# last modified 24/02/2022 at 11:10 by Antoine 'AatroXiss' BEAUDESSON
 
 """ main.py:
     - *
@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.0.19"
+__version__ = "0.1.0"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -20,65 +20,70 @@ __status__ = "Development"
 # third party imports
 
 # local application imports
-from modules.dataset_management import (
-    explore_data,
+from modules.tensorflow_check import (
+    check_tensorflow_version,
+    check_tensorflow_gpu,
+)
+from modules.load_data import (
     load_data,
+    explore_ds,
 )
 from modules.model import (
-    evaluate_model,
-    use_pretrained_model,
     train_model,
+    evaluate_model,
 )
 
-# other imports
+# other imports & constants
+TRAIN_PATH = "dataset/train"
+TEST_PATH = "dataset/test"
 
-# constants
-PATH_TRAIN_DATASET = 'dataset/train/'
-PATH_TEST_DATASET = 'dataset/test/'
-
-IMG_TEST_PATH_US = 'dataset/test/us/canvas_1629266864.jpg'
-IMG_TEST_PATH_FR = 'dataset/test/fr/canvas_1629257785.jpg'
-
-VAL_PATH = IMG_TEST_PATH_US
-
+IMG_HEIGHT = int(662 / 2)
+IMG_WIDTH = int(1536 / 2)
 BATCH_SIZE = 32
-IMG_HEIGHT = 150
-IMG_WIDTH = 300
-EPOCHS = 1
+EPOCHS = 100
 
 
 def main():
     """
+    This function is the entry point of the program.
+    GeoBot is a CNN that can detect which country a picture is from.
     """
 
-    train_dir = explore_data(PATH_TRAIN_DATASET)
-    train_ds = load_data(train_dir, 'training',
-                         BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
-    val_ds = load_data(train_dir, 'validation',
-                       BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
-    test_dir = explore_data(PATH_TEST_DATASET)
-    test_ds = load_data(test_dir, 'training',
-                        BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH)
+    # check tensorflow version & GPU availability
+    check_tensorflow_version()
+    check_tensorflow_gpu()
+    input("Press Enter to continue...\n")
 
-    class_names = train_ds.class_names
+    # explore directories
+    print("Exploring directories...")
+    train_dir = explore_ds(TRAIN_PATH, "train")
+    test_dir = explore_ds(TEST_PATH, "test")
+    input("Press Enter to continue...\n")
 
-    # Ask for the user which model he wants to use
-    user_input = input('Use pretrained model? (0/1)')
-    if user_input == '0':
-        model = use_pretrained_model(class_names, IMG_HEIGHT, IMG_WIDTH, VAL_PATH)  # noqa
-        evaluate_model(model, test_ds)
-    elif user_input == '1':
-        train_model(
-            class_names,
-            IMG_HEIGHT,
-            IMG_WIDTH,
-            train_ds,
-            val_ds,
-            EPOCHS,
-            VAL_PATH
-        )
-    else:
-        print("Please enter a valid input (0/1)")
+    # load data
+    print("Loading data...")
+    train_ds, val_ds, test_ds, class_names = load_data(train_dir, test_dir,
+                                                       IMG_HEIGHT, IMG_WIDTH,
+                                                       BATCH_SIZE)
+    print("Data loaded.")
+    input("Press Enter to continue...\n")
+
+    # Train the model
+    print("Training the model...")
+    model = train_model(train_ds, val_ds,
+                        IMG_HEIGHT, IMG_WIDTH,
+                        class_names, EPOCHS)
+    input("Press Enter to continue...\n")
+
+    # Evaluate the model
+    print("Evaluating the model...")
+    evaluate_model(model, test_ds)
+    # Ask the user if he wants to save the model
+    save_model = input("Do you want to save the model? (y/n) ")
+    if save_model == "y":
+        model.save("model.h5")
+        print("Model saved.")
+    input("Press Enter to continue...\n")  # wait for user input
 
 
 if __name__ == "__main__":
