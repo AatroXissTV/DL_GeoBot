@@ -10,5 +10,5 @@ __pycache__/
 # dataset
 dataset/
 
-# old main
-old_main.py
+# resources
+resources/
