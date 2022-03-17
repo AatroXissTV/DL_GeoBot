@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -26,14 +26,12 @@ import tensorflow as tf
 
 
 def data_augmentation(img_height, img_width):
-    """
-    """
 
     data_augmentation = tf.keras.Sequential(
         [
             tf.keras.layers.RandomFlip("horizontal",
                                        input_shape=(img_height, img_width, 3)),
-            tf.keras.layers.RandomRotation(0.1),
+            tf.keras.layers.RandomContrast(0.2),
             tf.keras.layers.RandomZoom(0.1),
         ]
     )

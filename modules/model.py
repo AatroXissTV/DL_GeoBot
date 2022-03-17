@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -34,7 +34,7 @@ from modules.visualize_results import (
 def train_model(train_ds, val_ds,
                 img_height, img_width,
                 class_names,
-                epochs):
+                epochs, callbacks):
     """
     This function is used to train the model
     """
@@ -44,7 +44,8 @@ def train_model(train_ds, val_ds,
     history = model.fit(
         train_ds,
         validation_data=val_ds,
-        epochs=epochs
+        epochs=epochs,
+        callbacks=callbacks
     )
 
     # visualize the results

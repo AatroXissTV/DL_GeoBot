@@ -18,6 +18,7 @@ __status__ = "Development"
 # standard library imports
 
 # third party imports
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.models import Sequential
 from keras import layers
 import tensorflow as tf
@@ -29,30 +30,41 @@ from modules.data import (
 
 
 def cnn_model(class_names, img_height, img_width):
-    """
-    """
-
-    num_classes = len(class_names)
-
     model = Sequential(
-        [
-            data_augmentation(img_height, img_width),
-            layers.Rescaling(1./255),
-            layers.Conv2D(16, 3, padding='same', activation='relu'),
-            layers.MaxPooling2D(),
-            layers.Conv2D(32, 3, padding='same', activation='relu'),
-            layers.MaxPooling2D(),
-            layers.Conv2D(64, 3, padding='same', activation='relu'),
-            layers.MaxPooling2D(),
-            layers.Dropout(0.2),
-            layers.Flatten(),
-            layers.Dense(128, activation='relu'),
-            layers.Dense(num_classes)
-        ]
-    )
+    [
+        data_augmentation(img_height, img_width),
+        layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),  # or 255
+        
+        layers.Conv2D(32, 3, padding='same', activation='relu'),
+        layers.MaxPooling2D(),
+        
+        layers.Conv2D(64, 3, padding='same', activation='relu'),
+        layers.MaxPooling2D(),
 
+        layers.Conv2D(128, 3, padding='same', activation='relu'),
+        layers.MaxPooling2D(),
+
+        layers.Flatten(),
+        layers.Dropout(0.2),
+        layers.Dense(128, activation='relu'),
+        layers.Dense(len(class_names))
+
+    ])
+    
     model.compile(optimizer='adam',
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),  # noqa
                   metrics=['accuracy'])
 
+    model.summary()
+    
     return model
+
+def get_callbacks():
+    earlystop = EarlyStopping(patience=10)
+    learning_rate_reduction = ReduceLROnPlateau(monitor='val_acc',
+                                                patience=10, 
+                                                verbose=1,
+                                                factor=0.5,
+                                                min_lr=0.0001)
+    callbacks = [earlystop, learning_rate_reduction]
+    return callbacks

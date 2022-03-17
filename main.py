@@ -1,6 +1,6 @@
 # main.py
 # created 03/02/2022 at 12:02 by Antoine 'AatroXiss' BEAUDESSON
-# last modified 24/02/2022 at 11:10 by Antoine 'AatroXiss' BEAUDESSON
+# last modified 17/03/2022 at 14:02 by Antoine 'AatroXiss' BEAUDESSON
 
 """ main.py:
     - *
@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.1.0"
+__version__ = "0.1.2"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -32,10 +32,13 @@ from modules.model import (
     train_model,
     evaluate_model,
 )
+from modules.cnn_model import (
+    get_callbacks
+)
 
 # other imports & constants
-TRAIN_PATH = "dataset/train"
-TEST_PATH = "dataset/test"
+TRAIN_PATH = "resources/cleaned_dataset"
+TEST_PATH = "resources/test_dataset"
 
 IMG_HEIGHT = int(662 / 2)
 IMG_WIDTH = int(1536 / 2)
@@ -68,11 +71,16 @@ def main():
     print("Data loaded.")
     input("Press Enter to continue...\n")
 
+    # print get callbacks
+    print("Getting callbacks...")
+    callbacks = get_callbacks()
+
     # Train the model
     print("Training the model...")
     model = train_model(train_ds, val_ds,
                         IMG_HEIGHT, IMG_WIDTH,
-                        class_names, EPOCHS)
+                        class_names, EPOCHS,
+                        callbacks)
     input("Press Enter to continue...\n")
 
     # Evaluate the model

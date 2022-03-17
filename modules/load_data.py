@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -78,7 +78,7 @@ def load_data(train_dir, test_dir, img_height, img_width, batch_size):
     )
     test_ds = load_data_from_dir(
         test_dir,
-        0.2,
+        0.1,
         'training',
         img_height=img_height,
         img_width=img_width,
