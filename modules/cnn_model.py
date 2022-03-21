@@ -1,6 +1,6 @@
 # cnn_model.py
 # created 24/02/2022 at 11:36 by Antoine 'AatroXiss' BEAUDESSON
-# last modified 24/02/2022 at 11:36 by Antoine 'AatroXiss' BEAUDESSON
+# last modified 21/03/2022 at 01:42 by Antoine 'AatroXiss' BEAUDESSON
 
 """ cnn_model.py:
     - *
@@ -10,7 +10,7 @@ __author__ = "Antoine 'AatroXiss' BEAUDESSON"
 __copyright__ = "Copyright 2021, Antoine 'AatroXiss' BEAUDESSON"
 __credits__ = ["Antoine 'AatroXiss' BEAUDESSON"]
 __license__ = ""
-__version__ = "0.1.1"
+__version__ = "0.1.3"
 __maintainer__ = "Antoine 'AatroXiss' BEAUDESSON"
 __email__ = "antoine.beaudesson@gmail.com"
 __status__ = "Development"
@@ -36,18 +36,33 @@ def cnn_model(class_names, img_height, img_width):
         layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),  # or 255
         
         layers.Conv2D(32, 3, padding='same', activation='relu'),
+        layers.BatchNormalization(),
+        
+        layers.Conv2D(32, 3, padding='same', activation='relu'),
+        layers.BatchNormalization(),
         layers.MaxPooling2D(),
+        layers.Dropout(0.25),
         
         layers.Conv2D(64, 3, padding='same', activation='relu'),
-        layers.MaxPooling2D(),
+        layers.BatchNormalization(),
+        layers.Dropout(0.25),
 
         layers.Conv2D(128, 3, padding='same', activation='relu'),
+        layers.BatchNormalization(),
         layers.MaxPooling2D(),
+        layers.Dropout(0.25),
 
         layers.Flatten(),
-        layers.Dropout(0.2),
+        
+        layers.Dense(256, activation='relu'),
+        layers.BatchNormalization(),
+        layers.Dropout(0.5),
+        
         layers.Dense(128, activation='relu'),
-        layers.Dense(len(class_names))
+        layers.BatchNormalization(),
+        layers.Dropout(0.5),
+        
+        layers.Dense(len(class_names)),
 
     ])
     
